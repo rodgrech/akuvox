@@ -386,13 +386,13 @@ class AkuvoxOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
-        self.config_entry = config_entry
+        self._config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """Initialize the options flow."""
         # Define the options schema
-        config_options = dict(self.config_entry.options)
-        config_data = dict(self.config_entry.data)
+        config_options = dict(self._config_entry.options)
+        config_data = dict(self._config_entry.data)
 
         event_screenshot_options = {
             "asap": "Receive events once generated, without waiting for camera screenshot URLs.",
@@ -539,7 +539,7 @@ class AkuvoxOptionsFlowHandler(config_entries.OptionsFlow):
 
     def get_data_key_value(self, key, placeholder=None):
         """Get the value for a given key. Options flow 1st, Config flow 2nd."""
-        dicts = [dict(self.config_entry.options), dict(self.config_entry.data)]
+        dicts = [dict(self._config_entry.options), dict(self._config_entry.data)]
         for p_dict in dicts:
             if key in p_dict:
                 return p_dict[key]

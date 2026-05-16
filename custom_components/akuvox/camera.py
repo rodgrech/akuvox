@@ -11,9 +11,11 @@ from homeassistant.components.generic.camera import GenericCamera
 from .const import DOMAIN, LOGGER, NAME, VERSION, DATA_STORAGE_KEY
 
 
-async def async_setup_entry(hass: HomeAssistant,
-                            _entry,
-                            async_add_devices: Callable[[list], Awaitable[None]]):
+async def async_setup_entry(
+    hass: HomeAssistant,
+    _entry,
+    async_add_devices: Callable[[list], Awaitable[None]],
+):
     """Set up the camera platform."""
     store = storage.Store(hass, 1, DATA_STORAGE_KEY)
     device_data = await store.async_load()
@@ -31,11 +33,13 @@ async def async_setup_entry(hass: HomeAssistant,
     for camera_data in cameras_data:
         name = str(camera_data["name"]).strip()
         rtsp_url = str(camera_data["video_url"]).strip()
-        entities.append(AkuvoxCameraEntity(
-            hass=hass,
-            name=name,
-            rtsp_url=rtsp_url
-        ))
+        entities.append(
+            AkuvoxCameraEntity(
+                hass=hass,
+                name=name,
+                rtsp_url=rtsp_url,
+            )
+        )
 
     if async_add_devices is None:
         LOGGER.error("async_add_devices is None")
@@ -44,6 +48,7 @@ async def async_setup_entry(hass: HomeAssistant,
     async_add_devices(entities)
     return True
 
+
 class AkuvoxCameraEntity(GenericCamera):
     """Akuvox camera class."""
 
@@ -51,7 +56,8 @@ class AkuvoxCameraEntity(GenericCamera):
         self,
         hass: HomeAssistant,
         name: str,
-        rtsp_url: str) -> None:
+        rtsp_url: str,
+    ) -> None:
         """Initialize the Akuvox camera class."""
         LOGGER.debug("Adding Akuvox camera '%s'", name)
 
@@ -62,10 +68,13 @@ class AkuvoxCameraEntity(GenericCamera):
                 CONF_NAME: name,
                 "stream_source": rtsp_url,
                 "limit_refetch_to_url_change": True,
-                "framerate": 2,
                 "content_type": "",
-                CONF_VERIFY_SSL: False,
-                "rtsp_transport": "udp"
+                "rtsp_transport": "tcp",
+                "advanced": {
+                    "framerate": 2,
+                    CONF_VERIFY_SSL: False,
+                    "limit_refetch_to_url_change": True,
+                },
             },
             identifier=name,
             title=name,
@@ -82,4 +91,3 @@ class AkuvoxCameraEntity(GenericCamera):
             model=VERSION,
             manufacturer=NAME,
         )
-

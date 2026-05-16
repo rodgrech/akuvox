@@ -80,7 +80,7 @@ class AkuvoxApiClient:
                     hass=self.hass,
                     auth_token=self._data.auth_token,
                     token=self._data.token,
-                    country_code=self.hass.config.country,
+                    country_code=self._data.country_code,
                     phone_number=self._data.phone_number) is False:
                     LOGGER.error("❌ API request for servers list failed.")
                     return False
@@ -89,7 +89,8 @@ class AkuvoxApiClient:
                 return False
 
         # Begin polling personal door log
-        await self.async_start_polling()
+        # Disabled for now: current API call is failing and spamming logs
+        # await self.async_start_polling()
 
         return True
 
@@ -310,6 +311,13 @@ class AkuvoxApiClient:
         """Request the user's configuration data."""
         LOGGER.debug("📡 Retrieving list of user's devices...")
         url = f"https://{self._data.host}/{API_USERCONF}?token={self._data.token}"
+
+        LOGGER.error(
+            "AKUVOX DEBUG userconf host=%s url=%s",
+            self._data.host,
+            url
+        )
+
         data = {}
         headers = {
             "Host": self._data.host,
@@ -328,33 +336,6 @@ class AkuvoxApiClient:
             return json_data
 
         LOGGER.error("❌ Unable to retrieve user's device list.")
-        return None
-
-    def make_opendoor_request(self, name: str, host: str, token: str, data: str):
-        """Request the user's configuration data."""
-        LOGGER.debug("📡 Sending request to open door '%s'...", name)
-        LOGGER.debug("Request data = %s", str(data))
-        url = f"https://{host}/{API_OPENDOOR}?token={token}"
-        headers = {
-            "Host": host,
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-AUTH-TOKEN": token,
-            "api-version": OPENDOOR_API_VERSION,
-            "Accept-Encoding": "gzip, deflate, br",
-            "Connection": "keep-alive",
-            "Accept": "*/*",
-            "User-Agent": "VBell/6.61.2 (iPhone; iOS 16.6; Scale/3.00)",
-            "Accept-Language": "en-AU;q=1, he-AU;q=0.9, ru-RU;q=0.8",
-            "Content-Length": "24",
-            "x-cloud-lang": "en",
-        }
-        response = self.post_request(url=url, headers=headers, data=data)
-        json_data = self.process_response(response, url)
-        if json_data is not None:
-            LOGGER.debug("✅ Door open request sent successfully.")
-            return json_data
-
-        LOGGER.error("❌ Request to open door failed.")
         return None
 
     async def async_retrieve_temp_keys_data(self) -> bool:
